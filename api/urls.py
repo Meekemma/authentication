@@ -17,4 +17,8 @@ urlpatterns = [
 
     path('register/', views.registerUsers, name='register'),
     path('change-password/', views.changePasswordView, name='change-password'),
+
+    path('user-list/', views.UserList, name='user-list'),
+    path('user-detail/<int:pk>/', views.UserDetail, name='user-detail'),
+
 ]
