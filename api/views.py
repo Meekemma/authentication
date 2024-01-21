@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from rest_framework.permissions import IsAuthenticated,IsAdminUser,AllowAny
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from .serializers import RegisterSerializer,changePasswordSerializer
+from .serializers import RegisterSerializer,changePasswordSerializer,UserUpdateRoleSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -31,6 +31,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def registerUsers(request):
     """
     API endpoint to register users.
@@ -42,6 +43,37 @@ def registerUsers(request):
             return Response (serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserUpdateRoleSerializer
+from .models import User
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def UserRole(request):
+    user = request.user
+    if request.method == 'POST':
+        serializer = UserUpdateRoleSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def UserRoleUpdate(request):
+    user = request.user
+
+    if request.method == 'PATCH':
+        serializer = UserUpdateRoleSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response
 
 
 
@@ -57,6 +89,8 @@ def changePasswordView(request):
             return Response({'detail': 'password changed successfully'}, status=status.HTTP_200_OK)
         return Response({"error": "Failed to changed password", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
+
+
 
 
 

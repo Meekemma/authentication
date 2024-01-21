@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -35,6 +36,70 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('password2', None)
         user=User.objects.create_user(**validated_data)
         return user
+
+
+
+
+    
+
+class UserUpdateRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['role']
+
+
+
+    def create(self, validated_data):
+        role=validated_data.get('role')
+
+        if role =="vendor":
+            group = Group.objects.get(name='vendor')
+        elif role =="customer":
+            group = Group.objects.get(name='customer')
+        else:
+            group=None
+
+        user=User.objects.create(role=role)
+        if group:
+            user.groups.add(group) 
+
+            return user
+
+
+
+    def update(self, instance, validated_data):
+        new_role = validated_data.get('role', instance.role)
+
+        # Remove the user from the current group (if any)
+        current_group = None
+        for group in instance.groups.all():
+            if group.name in ['vendor', 'customer']:  
+                current_group = group
+                break
+
+        if current_group:
+            instance.groups.remove(current_group)
+
+        if new_role == 'vendor':
+            new_group = Group.objects.get(name='vendor')  
+        elif new_role == 'customer':
+            new_group = Group.objects.get(name='customer')  
+        else:
+            new_group = None
+
+        if new_group:
+            instance.groups.add(new_group)
+
+        instance.role = new_role
+        instance.save()
+        return instance
+
+
+
+
+
+
+
 
 
 # Serializer for changing user password

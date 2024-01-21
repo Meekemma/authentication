@@ -16,6 +16,8 @@ urlpatterns = [
     path('api/password_reset/confirm/', reset_password_confirm, name='reset_password_confirm'),
 
     path('register/', views.registerUsers, name='register'),
+    path('user-role/', views.UserRole, name='user-role'),
+    path('update-role/', views.UserRoleUpdate, name='update-role'),
     path('change-password/', views.changePasswordView, name='change-password'),
 
     path('user-list/', views.UserList, name='user-list'),
